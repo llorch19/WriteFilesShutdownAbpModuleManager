@@ -1,21 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Optimization;
-using System.Web.Routing;
+﻿using Abp.Castle.Logging.Log4Net;
+using Abp.Web;
+using Castle.Facilities.Logging;
+using System;
+using System.IO;
+using WebApplication3.App_Start;
 
 namespace WebApplication3
 {
-    public class MvcApplication : System.Web.HttpApplication
+    public class MvcApplication : AbpWebApplication<WebAppModule>
     {
-        protected void Application_Start()
+        protected override void Application_Start(object sender, EventArgs e)
         {
-            AreaRegistration.RegisterAllAreas();
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            var basedir = AppDomain.CurrentDomain.BaseDirectory;
+#if DEBUG
+            AbpBootstrapper.IocManager.IocContainer.AddFacility<LoggingFacility>(
+                // Abp.Castle.Log4Net
+                f => f.UseAbpLog4Net().WithConfig(Path.Combine(basedir, "log4net.config"))
+            );
+#else
+            AbpBootstrapper.IocManager.IocContainer.AddFacility<LoggingFacility>(
+                f => f.UseAbpLog4Net().WithConfig(Path.Combine(basedir, "log4net.Production.config"))
+            );
+#endif
+
+            base.Application_Start(sender, e);
         }
     }
 }
